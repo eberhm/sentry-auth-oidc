@@ -7,7 +7,6 @@ from sentry.auth.providers.oauth2 import (
 )
 from .constants import (
     AUTHORIZATION_ENDPOINT,
-    USERINFO_ENDPOINT,
     ISSUER, TOKEN_ENDPOINT,
     CLIENT_SECRET,
     CLIENT_ID,
@@ -88,26 +87,17 @@ class OIDCProvider(OAuth2Provider):
             'version': DATA_VERSION,
         }
 
-    def get_user_info(self, bearer_token):
-        endpoint = USERINFO_ENDPOINT
-        bearer_auth = 'Bearer ' + bearer_token
-        return requests.get(endpoint + "?schema=openid",
-                            headers={'Authorization': bearer_auth},
-                            timeout=2.0).json()
-
     def build_identity(self, state):
         data = state['data']
-        bearer_token = data['access_token']
-        user_info = self.get_user_info(bearer_token)
-        if not user_info.get('email'):
-            logger.error('Missing email in user endpoint: %s' % data)
-
         user_data = state['user']
+        user_email = user_data.get('email')
+        user_name = user_email.split('@')[0]
+
         return {
             'id': user_data.get('sub'),
-            'email': user_info.get('email'),
-            'email_verified': user_info.get('email_verified'),
-            'nickname': user_info.get('nickname'),
-            'name': user_info.get('name'),
+            'email': user_data.get('email'),
+            'email_verified': user_data.get('email_verified'),
+            'nickname': user_name,
+            'name': user_name,
             'data': self.get_oauth_data(data),
         }
