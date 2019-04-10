@@ -1,7 +1,4 @@
 from __future__ import absolute_import, print_function
-
-import requests
-
 from sentry.auth.providers.oauth2 import (
     OAuth2Callback, OAuth2Provider, OAuth2Login
 )
@@ -13,12 +10,8 @@ from .constants import (
     SCOPE, DATA_VERSION
 )
 from .views import FetchUser, OIDCConfigureView
-from sentry.utils.http import absolute_uri
-from sentry.http import safe_urlopen, safe_urlread
-from six.moves.urllib.parse import parse_qsl
-from sentry.utils import json
-
 import logging
+
 logger = logging.getLogger('sentry.auth.oidc')
 
 
@@ -41,25 +34,6 @@ class OIDCLogin(OAuth2Login):
         params['approval_prompt'] = 'force'
         params['access_type'] = 'offline'
         return params
-
-class OIDCCallback(OAuth2Callback):
-    def exchange_token(self, request, helper, code):
-        data = self.get_token_params(
-            code=code,
-            redirect_uri=absolute_uri(helper.get_redirect_url()),
-        )
-        req = safe_urlopen(self.access_token_url, data=data)
-        body = safe_urlread(req)
-
-        logger.info('Response from DEX server',
-            extra={
-                'body': body,
-            }
-        )
-
-        if req.headers['Content-Type'].startswith('application/x-www-form-urlencoded'):
-            return dict(parse_qsl(body))
-        return json.loads(body)
 
 class OIDCProvider(OAuth2Provider):
     name = ISSUER
@@ -90,7 +64,7 @@ class OIDCProvider(OAuth2Provider):
     def get_auth_pipeline(self):
         return [
             OIDCLogin(domains=self.domains),
-            OIDCCallback(
+            OAuth2Callback(
                 access_token_url=TOKEN_ENDPOINT,
                 client_id=self.client_id,
                 client_secret=self.client_secret,
