@@ -1,5 +1,7 @@
-OpenIDConnect Auth for Sentry
-=============================
+OpenIDConnect Auth for Sentry adapted for DEX
+=============================================
+
+https://github.com/dexidp/dex
 
 An SSO provider for Sentry which enables `OpenID Connect <http://openid.net/connect/>`_ Apps authentication.
 
