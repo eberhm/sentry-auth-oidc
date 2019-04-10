@@ -13,6 +13,11 @@ from .constants import (
     SCOPE, DATA_VERSION
 )
 from .views import FetchUser, OIDCConfigureView
+from sentry.utils.http import absolute_uri
+from sentry.http import safe_urlopen, safe_urlread
+from six.moves.urllib.parse import parse_qsl
+from sentry.utils import json
+
 import logging
 logger = logging.getLogger('sentry.auth.oidc')
 
